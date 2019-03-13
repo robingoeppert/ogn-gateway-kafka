@@ -1,0 +1,2 @@
+# Fully qualified classes implementing OgnAircraftBeaconForwarder
+org.ogn.gateway.plugin.kafka.KafkaForwarder
