@@ -21,7 +21,7 @@ public class KafkaForwarder implements OgnAircraftBeaconForwarder {
     private static final String KAFKA_TOPIC_NAME = "aircraftBeacon";
 
     private boolean initialized;
-    private Producer<Long, AircraftBeacon> kafkaProducer;
+    private Producer<Long, String> kafkaProducer;
 
 
     public KafkaForwarder() {
@@ -32,14 +32,14 @@ public class KafkaForwarder implements OgnAircraftBeaconForwarder {
 
     @Override
     public void onBeacon(final AircraftBeacon aircraftBeacon, final Optional<AircraftDescriptor> optionalAircraftDescriptor) {
-        final ProducerRecord<Long, AircraftBeacon> record = new ProducerRecord<>(KAFKA_TOPIC_NAME, aircraftBeacon);
+        final String json = AircraftBeaconJsonizer.toJson(aircraftBeacon);
+
+        final ProducerRecord<Long, String> record = new ProducerRecord<>(KAFKA_TOPIC_NAME, json);
 
         try {
             this.kafkaProducer.send(record).get();
             LOG.info("AircraftBeacon of " + aircraftBeacon.getId() + " sent into kafka");
-        } catch (InterruptedException e) {
-            LOG.warn("Could not send aircraftBeacon of " + aircraftBeacon.getId() + " into Kafka", e);
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             LOG.warn("Could not send aircraftBeacon of " + aircraftBeacon.getId() + " into Kafka", e);
         }
     }

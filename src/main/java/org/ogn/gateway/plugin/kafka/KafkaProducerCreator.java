@@ -32,14 +32,22 @@ public class KafkaProducerCreator {
 
 
     public Producer create() {
-        return new KafkaProducer<Long, FlightStateBeacon>(properties);
+        //Thread.currentThread().setContextClassLoader(null);
+        return new KafkaProducer<Long, String>(properties);
     }
 
 
     private Properties loadProperties() throws IOException {
-        InputStream propertyStream = this.getClass().getResourceAsStream("kafka.properties");
+        InputStream propertyStream = this.getClass().getResourceAsStream("/kafka.properties");
         Properties properties = new Properties();
         properties.load(propertyStream);
+
+        final String envKafkaServers = System.getenv("KAFKA_SERVERS");
+        if (envKafkaServers != null) properties.setProperty("bootstrap.servers", envKafkaServers);
+
+        final StringBuilder allProps = new StringBuilder();
+        properties.forEach((k, v) -> allProps.append(k).append("=").append(v).append(", "));
+        LOG.info("Kafka producer properties: " + allProps.toString());
 
         return properties;
     }
