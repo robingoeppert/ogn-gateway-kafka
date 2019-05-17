@@ -31,9 +31,14 @@ public class KafkaProducerCreator {
     }
 
 
-    public Producer create() {
+    public Producer<Long, String> create() {
         //Thread.currentThread().setContextClassLoader(null);
-        return new KafkaProducer<Long, String>(properties);
+
+        final StringBuilder allProps = new StringBuilder();
+        properties.forEach((k, v) -> allProps.append(k).append("=").append(v).append(", "));
+        LOG.info("Crate Kafka producer with properties: " + allProps.toString());
+
+        return new KafkaProducer<>(properties);
     }
 
 
@@ -43,11 +48,11 @@ public class KafkaProducerCreator {
         properties.load(propertyStream);
 
         final String envKafkaServers = System.getenv("KAFKA_SERVERS");
-        if (envKafkaServers != null) properties.setProperty("bootstrap.servers", envKafkaServers);
-
-        final StringBuilder allProps = new StringBuilder();
-        properties.forEach((k, v) -> allProps.append(k).append("=").append(v).append(", "));
-        LOG.info("Kafka producer properties: " + allProps.toString());
+        if (envKafkaServers != null) {
+            properties.setProperty("bootstrap.servers", envKafkaServers);
+        } else {
+            LOG.error("System property 'bootstrap.servers' is missing but required for Kafka Producer. Provide it in form host:port");
+        }
 
         return properties;
     }
